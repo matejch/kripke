@@ -1,7 +1,7 @@
 // Package twophase models two-phase commit with three interchangeable resource managers.
 package twophase
 
-import "github.com/matej/kripke/fv"
+import "github.com/matejch/kripke/fv"
 
 type RM int
 

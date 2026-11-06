@@ -69,11 +69,11 @@ func TestDirtyDepTransitiveImport(t *testing.T) {
 		t.Fatalf("want 1 finding, got %v", fs)
 	}
 	f := fs[0]
-	wantMsg := "imports os via github.com/matej/kripke/purity/internal/fixtures/dirty_dep/osutil"
+	wantMsg := "imports os via github.com/matejch/kripke/purity/internal/fixtures/dirty_dep/osutil"
 	if f.Rule != "import" || f.Msg != wantMsg {
 		t.Errorf("got %v, want msg %q", f, wantMsg)
 	}
-	if f.Pkg != "github.com/matej/kripke/purity/internal/fixtures/dirty_dep" {
+	if f.Pkg != "github.com/matejch/kripke/purity/internal/fixtures/dirty_dep" {
 		t.Errorf("Pkg = %q", f.Pkg)
 	}
 	if filepath.Base(f.File) != "osutil.go" {
@@ -120,7 +120,7 @@ func TestAllowImportsOverride(t *testing.T) {
 }
 
 func TestAllowGlobals(t *testing.T) {
-	for _, name := range []string{"counter", "github.com/matej/kripke/purity/internal/fixtures/dirty.counter"} {
+	for _, name := range []string{"counter", "github.com/matejch/kripke/purity/internal/fixtures/dirty.counter"} {
 		m := byRule(check(t, "dirty", Policy{AllowGlobals: []string{name}}))
 		if len(m["global"]) != 0 {
 			t.Errorf("allow_globals %q: still reported %v", name, m["global"])

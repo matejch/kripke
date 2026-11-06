@@ -3,7 +3,7 @@ package twophase
 import (
 	"testing"
 
-	"github.com/matej/kripke/fv"
+	"github.com/matejch/kripke/fv"
 )
 
 func TestFixedIsCleanAndComplete(t *testing.T) {

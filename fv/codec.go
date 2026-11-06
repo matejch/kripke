@@ -49,6 +49,11 @@ func buildPlan(t reflect.Type) encFn {
 	}
 	var real encFn
 	plans[t] = func(e *encoder, v reflect.Value) { real(e, v) }
+	defer func() {
+		if real == nil {
+			delete(plans, t)
+		}
+	}()
 	real = compile(t)
 	plans[t] = real
 	return real

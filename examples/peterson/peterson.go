@@ -1,7 +1,7 @@
 // Package peterson models Peterson's two-process mutual exclusion.
 package peterson
 
-import "github.com/matej/kripke/fv"
+import "github.com/matejch/kripke/fv"
 
 type PC int
 

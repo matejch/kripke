@@ -50,6 +50,7 @@ func simulate(m *Model, o Options, res *Result) {
 	close(next)
 	wg.Wait()
 	seen := map[stateKey]bool{}
+	reported := map[string]bool{}
 	for i := range walks {
 		wk := &walks[i]
 		for _, k := range wk.keys {
@@ -57,7 +58,8 @@ func simulate(m *Model, o Options, res *Result) {
 		}
 		res.Transitions += wk.steps
 		res.Depth = max(res.Depth, wk.depth)
-		if wk.fail != nil && (o.ContinueAfterViolation || len(res.Violations) == 0) {
+		if wk.fail != nil && !reported[wk.fail.Kind+"\x00"+wk.fail.Name] && (o.ContinueAfterViolation || len(res.Violations) == 0) {
+			reported[wk.fail.Kind+"\x00"+wk.fail.Name] = true
 			wk.fail.Trace = x.replayWalk(wk.path)
 			wk.fail.Detail = fmt.Sprintf("random walk %d (seed %d)", i, o.Seed) + suffix(wk.fail.Detail)
 			res.Violations = append(res.Violations, *wk.fail)

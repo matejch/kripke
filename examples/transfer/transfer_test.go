@@ -3,7 +3,7 @@ package transfer
 import (
 	"testing"
 
-	"github.com/matej/kripke/fv"
+	"github.com/matejch/kripke/fv"
 )
 
 func TestAtomicConservesMoney(t *testing.T) {

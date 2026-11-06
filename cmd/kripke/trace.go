@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/matej/kripke/fv"
+	"github.com/matejch/kripke/fv"
 	"github.com/spf13/cobra"
 )
 

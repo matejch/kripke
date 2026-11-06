@@ -3,8 +3,8 @@ package settle
 import (
 	"testing"
 
-	"github.com/matej/kripke/fv"
-	"github.com/matej/kripke/purity"
+	"github.com/matejch/kripke/fv"
+	"github.com/matejch/kripke/purity"
 )
 
 func TestFixedDesignIsCleanAndComplete(t *testing.T) {

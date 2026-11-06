@@ -85,6 +85,7 @@ const (
 	maxEventually = 64
 	maxResponses  = 32
 	maxChoiceLen  = 1<<15 - 1
+	maxInits      = 1<<15 - 1
 	maxNodes      = 1<<31 - 2
 )
 

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/matej/kripke/purity"
+	"github.com/matejch/kripke/purity"
 	"github.com/spf13/cobra"
 )
 

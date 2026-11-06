@@ -1,7 +1,7 @@
 // Package philosophers models three dining philosophers sharing three forks.
 package philosophers
 
-import "github.com/matej/kripke/fv"
+import "github.com/matejch/kripke/fv"
 
 const N = 3
 

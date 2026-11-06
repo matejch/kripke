@@ -4,8 +4,8 @@ package settle
 import (
 	"slices"
 
-	"github.com/matej/kripke/examples/settle/core"
-	"github.com/matej/kripke/fv"
+	"github.com/matejch/kripke/examples/settle/core"
+	"github.com/matejch/kripke/fv"
 )
 
 type Config struct {

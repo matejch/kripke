@@ -164,7 +164,7 @@ There is no forking and no interpreter. A replayed value that is out of range fo
 - `Keyer` together with `Symmetries` is an error: a Keyer must canonicalize itself.
 - The POR restrictions in 4.6.
 
-Limits enforced during the run: about 2.1 B states (`int32` node index), 32 767 choices per step (`int16`), and a choice arena of at most 2^31 entries.
+At most 32 767 initial states (the init index is stored in the `int16` action field). Limits enforced during the run: about 2.1 B states (`int32` node index), 32 767 choices per step (`int16`), and a choice arena of at most 2^31 entries.
 
 ### 4.2 State identity
 
@@ -218,6 +218,7 @@ A state with no successors is **quiescent**. It is reported as a `deadlock` when
 
 - `MaxDepth`: nodes at the maximum depth are still expanded. Their edges to known states are recorded, and the run is marked incomplete only if a new state would have been added. A bound equal to the diameter therefore gives a complete run.
 - `MaxStates` and `Deadline` stop adding states and mark the run incomplete.
+- With `ContinueAfterViolation`, a state whose expansion fails (panic, determinism, POR validation) is reported and not expanded, so the run is marked incomplete and liveness is not checked.
 - Stopping at the first violation also leaves the run incomplete, and liveness is not checked.
 
 **Hygiene warnings** at start: map fields (a sort per key on every encode, an allocation per clone) and interface fields.
@@ -304,7 +305,7 @@ Static. Two actions are dependent if either one writes a field the other reads o
 
 - Each step expands every action fully and picks a successor uniformly.
 - Invariants are checked along the walk. Deadlock and `Eventually` are checked at quiescence.
-- The reported violation is the one from the lowest-numbered failing walk.
+- The reported violation is the one from the lowest-numbered failing walk. With `ContinueAfterViolation`, each (kind, name) pair is still reported once.
 - There is no completeness claim and no cycle analysis.
 
 ### 4.8 Measured performance
@@ -343,7 +344,7 @@ kripke purity <pkgs...> [--policy purity.yaml]
 
 Nothing is written into the source tree, concurrent runs do not collide, and a crash leaves only an OS temp directory. A built binary (rather than `go run`) keeps the exit code: `go run` turns any non-zero exit into 1. The target module must require the kripke module, which is automatic once it imports `fv`. Models register with `fv.Register` in `init()`. With no `--model`, every registered model runs, including broken variants, so expect exit code 1 on example packages.
 
-Exit codes: 0 clean, 1 violation (or purity findings), 2 error.
+Exit codes: 0 clean, 1 violation (or purity findings), 2 error, including a model binary killed by a signal (OOM, Ctrl-C).
 
 ## 6. Purity lint (`purity`)
 
@@ -373,7 +374,7 @@ purity.LoadPolicy(path)                      // a missing file gives the zero Po
 
 ```
 kripke/
-├── go.mod          module github.com/matej/kripke; go 1.25; deps: github.com/spf13/cobra, github.com/zeebo/xxh3, gopkg.in/yaml.v3
+├── go.mod          module github.com/matejch/kripke; go 1.25; deps: github.com/spf13/cobra, github.com/zeebo/xxh3, gopkg.in/yaml.v3
 ├── Makefile        build | install (~/go/bin/kripke) | test | lint (vet + gofmt + purity on examples/settle/core) | tidy | bench
 ├── purity.yaml     empty policy
 ├── README.md       usage, model example, every example's results, performance
@@ -452,6 +453,7 @@ None of those models ship. The `settle` example reproduces the "one fix hides an
   - simulate 3
   - symmetry 5
   - hygiene 2
+  - regressions 4 (init limit, failed expansion is incomplete, plan cache not poisoned by an encode error, simulation dedup)
   
   Plus purity 9, and 3 to 7 tests per example package pinning state and step counts.
 - `make lint`: `go vet`, gofmt, and `kripke purity ./examples/settle/core`.
@@ -461,7 +463,7 @@ None of those models ship. The `settle` example reproduces the "one fix hides an
 
 ## 12. Rebuild checklist
 
-1. `go mod init github.com/matej/kripke`. Deps: `github.com/spf13/cobra`, `github.com/zeebo/xxh3`, `gopkg.in/yaml.v3`. Package resolution shells out to `go list`.
+1. `go mod init github.com/matejch/kripke`. Deps: `github.com/spf13/cobra`, `github.com/zeebo/xxh3`, `gopkg.in/yaml.v3`. Package resolution shells out to `go list`.
 2. `fv/`, in this order:
    1. `model.go`: the types and validation from 4.1.
    2. `choice.go`: replay.
@@ -474,6 +476,7 @@ None of those models ship. The `settle` example reproduces the "one fix hides an
    9. `simulate.go`, `hygiene.go`, `registry.go` with `Main`, `testing.go`.
 3. `purity/` with the rules and denylist in section 6.
 4. `cmd/kripke` with the overlay-and-build trick from section 5.
+   A plan that fails to compile must be removed from the global cache, or later runs see a nil plan.
 5. Examples in the order twophase, transfer, peterson, philosophers, settle. Match every number in section 9.
 6. Benchmark (`make bench`, and a 7-counter grid for memory). Record the machine and the numbers in the README.
 

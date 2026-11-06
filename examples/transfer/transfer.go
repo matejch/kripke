@@ -4,7 +4,7 @@ package transfer
 import (
 	"slices"
 
-	"github.com/matej/kripke/fv"
+	"github.com/matejch/kripke/fv"
 )
 
 type Acct int

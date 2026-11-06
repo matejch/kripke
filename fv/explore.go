@@ -104,6 +104,10 @@ func Run(m Model, o Options) (res Result) {
 		res.Error = fmt.Sprintf("model %s: Init returned no states", m.Name)
 		return res
 	}
+	if len(inits) > maxInits {
+		res.Error = fmt.Sprintf("model %s: Init returned %d states, the limit is %d", m.Name, len(inits), maxInits)
+		return res
+	}
 	if err := m.validate(o, inits[0]); err != nil {
 		res.Error = err.Error()
 		return res
@@ -325,6 +329,7 @@ func (x *explorer) merge(it item, ex *expansion, next *[]item) {
 	n.enabled |= ex.enabled
 	if ex.fail != nil {
 		x.report(ex.fail.kind, ex.fail.name, ex.fail.detail, x.pathTo(it.idx))
+		x.limit("a state's expansion failed and its successors were not explored")
 		return
 	}
 	if len(ex.succs) == 0 && it.comp == 0 {

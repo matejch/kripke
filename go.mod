@@ -1,4 +1,4 @@
-module github.com/matej/kripke
+module github.com/matejch/kripke
 
 go 1.25.6
 

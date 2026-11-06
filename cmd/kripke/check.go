@@ -78,7 +78,7 @@ func check(pattern string, forward []string) (int, error) {
 import (
 	"os"
 
-	"github.com/matej/kripke/fv"
+	"github.com/matejch/kripke/fv"
 	_ %q
 )
 
@@ -99,7 +99,7 @@ func main() { os.Exit(fv.Main(os.Args[1:], os.Stdout, os.Stderr)) }
 	build.Dir = p.Module.Dir
 	build.Stdout, build.Stderr = os.Stderr, os.Stderr
 	if err := build.Run(); err != nil {
-		return 0, fmt.Errorf("building the model binary for %s failed (does its module require github.com/matej/kripke?)", p.ImportPath)
+		return 0, fmt.Errorf("building the model binary for %s failed (does its module require github.com/matejch/kripke?)", p.ImportPath)
 	}
 	cmd := exec.Command(bin, forward...)
 	cmd.Dir = p.Dir
@@ -107,7 +107,10 @@ func main() { os.Exit(fv.Main(os.Args[1:], os.Stdout, os.Stderr)) }
 	err = cmd.Run()
 	var ee *exec.ExitError
 	if errors.As(err, &ee) {
-		return ee.ExitCode(), nil
+		if code := ee.ExitCode(); code >= 0 {
+			return code, nil
+		}
+		return 0, fmt.Errorf("model binary for %s was killed: %v", p.ImportPath, ee)
 	}
 	return 0, err
 }

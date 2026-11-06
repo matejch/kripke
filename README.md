@@ -5,7 +5,8 @@ functions and predicates. `kripke` walks every reachable state, checks safety in
 liveness under fairness, and prints the shortest path to a violation as a step-by-step state diff.
 
 ```
-go get github.com/matej/kripke
+go env -w GOPRIVATE=github.com/matejch/*   # the repo is private
+go get github.com/matejch/kripke
 make install                       # ~/go/bin/kripke
 kripke check ./examples/peterson   # every registered model in the package
 go test ./...                      # the same checks as tests

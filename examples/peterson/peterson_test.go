@@ -3,7 +3,7 @@ package peterson
 import (
 	"testing"
 
-	"github.com/matej/kripke/fv"
+	"github.com/matejch/kripke/fv"
 )
 
 func clean(t *testing.T, m fv.Model) {
