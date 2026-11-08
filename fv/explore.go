@@ -208,22 +208,24 @@ func (x *explorer) add(parent int32, s succ, depth int32) int32 {
 
 func (x *explorer) checkNew(id int32, s succ) {
 	for _, i := range s.bad {
-		x.report(KindInvariant, x.m.Invariants[i].Name, "", x.pathTo(id))
+		x.report(KindInvariant, x.m.Invariants[i].Name, "", x.path(id))
 	}
 }
 
-func (x *explorer) report(kind, name, detail string, tr Trace) {
+func (x *explorer) report(kind, name, detail string, tr func() Trace) {
 	k := kind + "\x00" + name
 	if x.reported[k] {
 		return
 	}
 	x.reported[k] = true
-	x.res.Violations = append(x.res.Violations, Violation{Kind: kind, Name: name, Detail: detail, Trace: tr})
+	x.res.Violations = append(x.res.Violations, Violation{Kind: kind, Name: name, Detail: detail, Trace: tr()})
 	if !x.o.ContinueAfterViolation {
 		x.stopped = true
 		x.halt.Store(true)
 	}
 }
+
+func (x *explorer) path(id int32) func() Trace { return func() Trace { return x.pathTo(id) } }
 
 func (x *explorer) limit(why string) {
 	if !slices.Contains(x.limited, why) {
@@ -328,18 +330,18 @@ func (x *explorer) merge(it item, ex *expansion, next *[]item) {
 	n := &x.nodes[it.idx]
 	n.enabled |= ex.enabled
 	if ex.fail != nil {
-		x.report(ex.fail.kind, ex.fail.name, ex.fail.detail, x.pathTo(it.idx))
+		x.report(ex.fail.kind, ex.fail.name, ex.fail.detail, x.path(it.idx))
 		x.limit("a state's expansion failed and its successors were not explored")
 		return
 	}
 	if len(ex.succs) == 0 && it.comp == 0 {
 		n.quiescent = true
 		if x.m.DeadlockIsError {
-			x.report(KindDeadlock, "deadlock", "no action is enabled", x.pathTo(it.idx))
+			x.report(KindDeadlock, "deadlock", "no action is enabled", x.path(it.idx))
 		}
 		for i, ev := range x.m.Eventually {
 			if n.props&(1<<i) == 0 {
-				x.report(KindEventually, ev.Name, "quiescent state where it does not hold", x.pathTo(it.idx))
+				x.report(KindEventually, ev.Name, "quiescent state where it does not hold", x.path(it.idx))
 			}
 		}
 	}

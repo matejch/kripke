@@ -50,3 +50,14 @@ func TestSimulationReportsEachViolationOnce(t *testing.T) {
 		t.Fatalf("want 1 violation, got %d", len(r.Violations))
 	}
 }
+
+func TestRepeatedViolationsDoNotRebuildTraces(t *testing.T) {
+	m := counter(2000)
+	inits := 0
+	m.Init = func() []State { inits++; return []State{&cnt{}} }
+	m.Invariants = []Invariant{Inv("always false", func(State) bool { return false })}
+	Run(m, Options{ContinueAfterViolation: true})
+	if inits > 2 {
+		t.Fatalf("Init ran %d times: traces are being built for already-reported violations", inits)
+	}
+}

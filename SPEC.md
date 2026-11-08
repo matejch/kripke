@@ -375,7 +375,7 @@ purity.LoadPolicy(path)                      // a missing file gives the zero Po
 ```
 kripke/
 ├── go.mod          module github.com/matejch/kripke; go 1.25; deps: github.com/spf13/cobra, github.com/zeebo/xxh3, gopkg.in/yaml.v3
-├── Makefile        build | install (~/go/bin/kripke) | test | lint (vet + gofmt + purity on examples/settle/core) | tidy | bench
+├── Makefile        build | install (~/go/bin/kripke) | test | lint (vet + gofmt + purity on the examples' core packages) | tidy | bench
 ├── purity.yaml     empty policy
 ├── README.md       usage, model example, every example's results, performance
 ├── SKILL.md        Claude Code skill; install to ~/.claude/skills/kripke/SKILL.md
@@ -423,6 +423,7 @@ Each example has a passing model and at least one broken variant, so the suite c
 | `philosophers` (3) | One meal each: `philosophers` clean (96 states); `philosophers-naive` (everyone takes left first): `eventually` at the deadlock, 6 steps. Eating forever with `DeadlockIsError`: `philosophers-forever` clean with strong fairness on fork-taking; `-naive`: deadlock, 6 steps; `-weak-fairness`: response `hungry 0 eventually eats`, a 5-step lasso where philosopher 2 keeps taking fork 0. | `DeadlockIsError`, `Eventually`, responses, **weak vs strong fairness** |
 | `peterson` | `peterson-bounded` (2 rounds each): clean, 90 states. `peterson` (forever, with an unfair `think` self-loop): response `waiting is eventually critical` holds under weak fairness, 20 states. `-turn-before-flag`: invariant `mutual exclusion`, 6 steps. `-no-fairness`: response violated by a 3-step lasso, P0 waits while P1 thinks forever. | fairness, responses, fair cycles, self-loops |
 | `transfer` | 3 symmetric accounts, 2 workers, 2 transfers each. `transfer` (atomic): clean, 28 states. `transfer-non-atomic` (read, then write): invariant `money conserved`, 4 steps, 616 states (2 708 without symmetry). | symmetry, interleaving |
+| `posttrade` + `posttrade/core` | 4 trades (2 EUR, 2 USD). Requests: one client batch (any subset of IDs), one client currency request, one end-of-day batch (fair, so it always happens). Jobs select, optionally claim, then settle one trade per step; one crash re-queues a job. `posttrade`: clean, 125 337 states. `-no-claim` and `-no-status-check`: each clean, so either guard alone suffices. `-legacy` (neither): invariant `settled at most once`, 6 steps (a batch and a currency request both pick trade 3). `-no-claim-release`: `eventually` `every trade settled`, 8 steps (end-of-day claims everything, crashes, and its retry finds nothing open). | overlapping request scopes, guards that each suffice, stranded claims |
 | `settle` + `settle/core` | Pure ledger core, a queue, 2 workers, crash budget 1. `settle`: clean, 84 states. `-no-idempotency`: invariant `settled at most once`, 5 steps. `-ack-before-commit`: `eventually` `every instruction settled`, 7 steps. `-legacy` (both): only the lost instruction, because acking early hides the duplicate bug. | the section-8 pattern, the purity lint on a real core, fix-interaction tests |
 
 ## 10. Build history (of v1, kept for context)
@@ -453,7 +454,7 @@ None of those models ship. The `settle` example reproduces the "one fix hides an
   - simulate 3
   - symmetry 5
   - hygiene 2
-  - regressions 4 (init limit, failed expansion is incomplete, plan cache not poisoned by an encode error, simulation dedup)
+  - regressions 5 (traces built only for the first report of a violation, init limit, failed expansion is incomplete, plan cache not poisoned by an encode error, simulation dedup)
   
   Plus purity 9, and 3 to 7 tests per example package pinning state and step counts.
 - `make lint`: `go vet`, gofmt, and `kripke purity ./examples/settle/core`.
@@ -476,6 +477,7 @@ None of those models ship. The `settle` example reproduces the "one fix hides an
    9. `simulate.go`, `hygiene.go`, `registry.go` with `Main`, `testing.go`.
 3. `purity/` with the rules and denylist in section 6.
 4. `cmd/kripke` with the overlay-and-build trick from section 5.
+   Build a violation's trace only when it is the first report of that (kind, name); otherwise `--continue` on a model that violates in most states replays a trace per state.
    A plan that fails to compile must be removed from the global cache, or later runs see a nil plan.
 5. Examples in the order twophase, transfer, peterson, philosophers, settle. Match every number in section 9.
 6. Benchmark (`make bench`, and a 7-counter grid for memory). Record the machine and the numbers in the README.

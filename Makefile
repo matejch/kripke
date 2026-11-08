@@ -14,7 +14,7 @@ test:
 lint:
 	go vet ./...
 	test -z "$$(gofmt -l .)"
-	go run ./cmd/kripke purity ./examples/settle/core
+	go run ./cmd/kripke purity ./examples/settle/core ./examples/posttrade/core
 
 tidy:
 	go mod tidy

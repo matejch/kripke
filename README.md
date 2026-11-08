@@ -81,6 +81,10 @@ Results come from `kripke check ./examples/<pkg> --continue`.
 | `settle-no-idempotency` | 112 | invariant `settled at most once`, 5 steps |
 | `settle-ack-before-commit` | 108 | eventually `every instruction settled`, 7 steps |
 | `settle-legacy` (both toggles) | 108 | only the lost instruction |
+| `posttrade` (claim + status check + release on crash) | 125 337 | clean |
+| `posttrade-no-claim` / `-no-status-check` | 246 721 / 125 337 | clean: either guard alone prevents double settlement |
+| `posttrade-legacy` (neither guard) | 3 447 555 | invariant `settled at most once`, 6 steps |
+| `posttrade-no-claim-release` | 83 535 | eventually `every trade settled`, 8 steps: a crashed job strands its claims |
 
 `settle` is the pattern for real systems: `examples/settle/core` is pure production logic (it passes
 `kripke purity`), and `examples/settle` models the queue, workers and crashes around it. The legacy
@@ -111,5 +115,5 @@ symmetry (N! encodings per state).
 cmd/kripke/   CLI (cobra): check, trace, purity
 fv/           engine: model, choice replay, codec, BFS/DFS explorer, liveness, POR, simulation
 purity/       static lint for pure core packages, fixtures under internal/fixtures
-examples/     twophase, philosophers, peterson, transfer, settle (+ settle/core)
+examples/     twophase, philosophers, peterson, transfer, settle, posttrade (each pattern model has a core/)
 ```

@@ -250,7 +250,7 @@ func (x *explorer) liveness() {
 			}
 			tr := x.pathTo(best)
 			x.appendLoop(w, g, &tr, best, comps[bestComp])
-			x.report(KindLiveness, ev.Name, "fair cycle on which it does not hold forever", tr)
+			x.report(KindLiveness, ev.Name, "fair cycle on which it does not hold forever", func() Trace { return tr })
 			if x.stopped {
 				return
 			}
@@ -311,7 +311,7 @@ func (x *explorer) liveness() {
 		if ci, ok := compOf[end]; ok {
 			x.appendLoop(w, g, &tr, end, comps[ci])
 		}
-		x.report(KindResponse, r.Name, "triggered, then a fair execution never reaches the response", tr)
+		x.report(KindResponse, r.Name, "triggered, then a fair execution never reaches the response", func() Trace { return tr })
 		if x.stopped {
 			return
 		}
