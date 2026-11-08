@@ -25,6 +25,8 @@ const (
 	Read
 )
 
+func (p Phase) String() string { return [...]string{"ready", "read"}[p] }
+
 type Worker struct {
 	Phase    Phase
 	From, To Acct
